@@ -1,126 +1,214 @@
-TUIO C# LIBRARY AND EXAMPLES
-----------------------------
-Copyright (c) 2005-2014 Martin Kaltenbrunner <martin@tuio.org>
-This software is part of reacTIVision, an open source fiducial
-tracking and multi-touch framework based on computer vision. 
-http://reactivision.sourceforge.net/
-
-Many thanks to Andrew Jones <andrew.b.jones@gmail.com> for his 
-improvements of the C# properties and documentation style.
-
-Demo Applications:
+﻿reacTIVision 1.5.1
 ------------------
-This package contains two demo applications which are able
-to receive TUIO messages from any TUIO enable tracker.
+(c) 2005-2016 by Martin Kaltenbrunner <martin@tuio.org>
+https://github.com/mkalten/reacTIVision
 
-* TuioDump prints the TUIO events directly to the concole
-* TuioDemo draws the object and cursor state on the screen
+reacTIVision is an open source, cross-platform computer vision
+framework for the fast and robust tracking of fiducial markers
+attached onto physical objects, as well as for multi-touch
+finger tracking. It was mainly designed as a toolkit for the 
+rapid development of table-based tangible user interfaces (TUI)
+and multi-touch interactive surfaces. This framework has been 
+developed by Martin Kaltenbrunner and Ross Bencina as part of
+the Reactable project, a tangible modular synthesizer.
+http://www.reactable.com/
 
-You can use these demo applications for debugging purposes, 
-or use them as a starting point for the development of your own
-C# applications implementing the TUIO protocol. Please refer to
-the source code of the both examples and the following section.
+reacTIVision is a standalone application, which sends Open Sound
+Control (OSC) messages via a UDP network socket to any connected
+client application. It implements the TUIO protocol, which has been
+specially designed for transmitting the state of tangible objects
+and multi-touch events from a tabletop surface. As an alternative 
+to TUIO, the application is also capabable of sending MIDI messages.
 
-Pressing F1 will toggle FullScreen mode with the TuioDemo,
-pressing ESC or closing the Window will end the application.
-Hitting the V key will print the TUIO events to the console.
+The TUIO framework includes a set of example client projects
+for various programming languages, which serve as a base for
+the easy development of tangible user interface or multi-touch
+applications. Example projects are available for languages such as:
+C/C++, Java, C#, Processing, Pure Data, Max/MSP and Flash. 
 
-Keep in mind to make your graphics scalable for the varying
-screen and window resolutions. A reasonable TUIO application
-will run in fullscreen mode, although the windowed mode might
-be useful for debugging purposes or working with the Simulator.
+The reacTIVision application currently runs under the 
+following operating systems: Windows, Mac OS X and Linux
+Under Windows it supports any camera with a proper WDM driver,
+such as most USB, FireWire and DV cameras. Under Mac OS X most
+UVC campliant USB as well as Firewire cameras should work.
+Under Linux FireWire cameras are as well supported as many 
+Video4Linux2 compliant USB cameras.
 
-For your convenience this example contains a monodevelop project.
+Fiducial Symbols
+----------------
+This application was designed to track specially designed fiducial
+markers. You will find the default "amoeba" set of 216 fiducials in
+the document "default.pdf" within the symbols folder. Print this
+document and attach the labels to any object you want to track.
+The default fiducial tracking engine is based on the included fidtrack
 
-Application Programming Interface:
-----------------------------------
-First you  need to create an instance of TuioClient. This class 
-is listening to TUIO messages on the specified port and generates
-higher level messages based on the object events.
+library, which also provides an alternative "classic“ fiducial set,
+which are a reimplementation of Enrico Costanza’s d-touch concept.
+See below how to configure the application to use these symbol sets.
 
-Your application needs to implement the TuioListener interface,
-and has to be added to the TuioClient in order to receive messages.
+reacTIVision detects the ID, position and rotation angle of fiducial 
+markers in the realtime video and transmits these values to the client
+application via the TUIO protocol. TUIO also assigns a session ID to 
+each object in the scene and transmits this session ID along with the
+actual fiducial ID. This allows the identification and tracking of 
+several objects with the same marker ID.
 
-	"public class MyApplication : TuioListener"
+Finger Tracking
+---------------
+reacTIVision also allows multi-touch finger tracking, which is basically
+interpreting any round white region of a given size as a finger that
+is touching the surface. Finger tracking is turned off by default and 
+can be enabled by pressing the 'F' key and adjusting the average finger 
+size, which is given in pixels. The general recognition sensitivity can 
+also be adjusted, where its value is given as a percentage. 75 would be 
+less sensitive and 125 more sensitive, which means that also less probable 
+regions are interpreted as a finger. The finger tracking should work with 
+DI (diffuse illumination) as well as with FTIR illumination setups.
 
-A simple code snippet for setting up a TUIO session:
+Application Handling
+--------------------
+Before starting the reacTIVision application make sure you have
+a supported camera connected to your system, since the application
+obviously will not work at all without a camera. The application
+will show a single window with the B&W camera video in realtime.
 
-	MyApplication app = new MyApplication();
-	TuioClient client = new TuioClient();
-	client.addTuioListener(app);
-	client.start();
+Pressing the 'S' key will show to the original camera image.
+Pressing 'T' will show the binary tresholded image, pressing the
+'N' key will turn the display off, which reduces the CPU usage.
 
-A TuioListener needs to implement the following methods:
+The thresholder gradient gate can be adjusted by hitting the 'G' key.
+Lowering the value can improve the thresholder performance in low
+light conditions with insufficient finger contrast for example.
+You can gradually lower the value before noise appears in the image.
+Optionally you can also adjust the tile size of the thresholder.
 
-* addTuioObject(TuioObject tobj):
-  this is called when an object becomes visible
-* updateTuioObject(TuioObject tobj):
-  and object was moved on the table surface
-* removeTuioObject(TuioObject tobj):
-  an object was removed from the table
+The camera options can be adjusted by pressing the 'O' key. 
+On Windows and Mac OS this will show a system dialog that allows 
+the adjustment of the available camera parameters. On Linux (Mac OS X
+when using Firewire cameras), the available camera settings can be
+adjusted with a simple on screen display. 
 
-* addTuioCursor(TuioCursor tcur):
-  this is called when a new cursor is detected
-* updateTuioCursor(TuioCursor tcur):
-  a cursor is moving on the table surface
-* removeTuioCursor(TuioCursor tcur):
-  a cursor was removed from the table
+In order to produce some more verbose debugging output, hitting
+the 'V' will print the symbol and finger data to the console.
+Pressing the 'H' key will display all these options on the screen.
+'F1' will toggle the full screen mode, the 'P' key pauses the
+image analysis completely, hitting 'ESC' will quit the application. 
 
-* addTuioBlob(TuioBlob tblob):
-  this is called when a new blob is detected
-* updateTuiooBlob(TuioBlob tblob):
-  a blob is moving on the table surface
-* removeTuiooBlob(TuioBlob tblob):
-  a blob was removed from the table
+XML configuration file
+----------------------
+Common settings can be edited within the file "reacTIVision.xml" where 
+all changes are stored automatically when closing the application.
+Under Mac OS X this XML configuration file can be found within the 
+application bundle's Resources folder. Select "Show Package Contents" 
+from the application's context menu in order to access and edit the file. 
 
-* refresh(TuioTime bundleTime):
-  this method is called after each bundle,
-  use it to repaint your screen for example
+The reacTIVision application usually sends the TUIO messages 
+to port 3333 on localhost (127.0.0.1)
+You can change this setting by adding or editing the XML tag
+<tuio host="127.0.0.1" port="3333"> to the configuration.
 
-Each object or cursor is identified with a unique session ID that is maintained
-over its lifetime. Additionally each object carries symbol ID that corresponds
-to its attached fiducial marker number. The cursor ID of the cursor object is always
-a number in the range of all currently detected cursor blobs.
+The <fiducial engine="amoeba" tree="default"/> XML tag lets you
+select the fiducial engine or an alternative amoeba tree order.
+The default engine is using the fastest and effective 'amoeba' 
+fiducial set. Add the 'classic' option in order to use the dtouch
+reimplementation from libfidtrack.
 
-The TuioObject and TuioCursor references are updated automatically by the TuioClient
-and are always referencing to the same instance over the object lifetime.
-All the TuioObject and TuioCursor attributes are encapsulated and can be
-accessed with methods such as getX(), getY() and getAngle() and so on.
-TuioObject and TuioCursor also have some additional convenience methods
-for the calculation of distances and angles between objects. The getPath()
-method returns a Vector of TuioPoints representing the movement path of the object.
+The display attribute defines the default screen upon startup.
+The <image display="dest" equalize="false" gradient="32" tile="10"/>
+lets you adjust the default gradient gate value and tile size.
+reacTIVision comes with a background subtraction module,  which in
+some cases can increase the recognition performance of both the finger
+and fiducial tracking. Within the running application you can toggle
+this with the 'E' key or recalculate the background subtraction 
+by hitting the SPACE bar.
 
-Alternatively the TuioClient class contains some methods for the polling
-of the currently visible objects and cursors. There are methods which return
-either a list or individual object and cursor objects. The TuioObject and
-TuioCursor classes have been added as a container which also can be used
-by external classes.
+The overall camera and imageesettings can be configured within the
+"camera.xml" configuration file. On Mac OS X this file is as well 
+located in the Resources folder within the application bundle.
+You can select the camera ID and specify its dimension and framerate,
+as well as the most relevant image adjustments. Optionally you can also
+crop the raw camera frames to reduce the final image size. 
+Please see the example options in the file for further information. 
 
-* getTuioObjects() returns a Vector of all currently present TuioObjects
-* getTuioCursors() returns a Vector of all currently present TuioCursors
-* getTuioBlobs() returns a Vector of all currently present TuioBlobs
-* getTuioObject(long s_id) returns a TuioObject (or NULL if not present)
-* getTuioCursor(long s_id) returns a TuioCursor (or NULL if not present)
-* getTuioBlob(long s_id) returns a TuioBlob (or NULL if not present)
+You can list all available cameras with the "-l" startup option.
 
-License:
---------
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 3.0 of the License, or (at your option) any later version.
- 
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-Lesser General Public License for more details.
- 
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+TUIO vs. MIDI
+-------------
+The application can alternatively send  MIDI messages, which allows
+the mapping of any object dimension (xpos, ypos, angle) to a MIDI
+control message through an XML configuration file. Adding and removing
+objects can also be mapped to simple note ON/OFF events.
+Keep in mind though that MIDI has less bandwidth and data resolution
+compared to Open Sound Control, so the new MIDI feature is only meant
+as a convenience alternative to TUIO in some application scenarios.
 
-References:
+Adding <midi config="midi_demo.xml" /> to reacTIVision.xml switches to
+MIDI mode and specifies the MIDI configuration file that contains the
+
+mappings and MIDI device selection. An example configuration file along
+
+with a simple PD patch example can be found in the midi folder.
+
+You can list all available MIDI devices with the "-l" startup option.
+
+Calibration and Distortion
+--------------------------
+Many tables, such as the reacTable are using wide-angle lenses
+to increase the area visible to the camera at a minimal distance. 
+Since these lenses unfortunately distort the image, reacTIVision
+can correct this distortion as well as the alignment of the image.
+
+For the calibration, print and place the provided calibration sheet
+on the table and adjust the grid points to the grid on the sheet.
+To calibrate reacTIVision switch to calibration mode hitting 'C'
+
+Use the keys A,D,W,X to move within grid, moving with the cursor keys
+will adjust the position (center point) and size (lateral points) 
+of the grid alignment. By pressing 'Q' You can toggle into the precise 
+calibration mode, which allows you to adjust each individual grid point.
+
+'J' resets the whole calibration grid, 'U' resets the selected point
+and 'K' reverts to the saved grid.
+
+To check if the distortion is working properly press 'R'. This will show
+the fully distorted live video image in the target window. Of course the
+distortion algorithm only corrects the found fiducial positions instead 
+of the full image.
+
+Compilation
 -----------
-This example is using the OSC.NET OpenSound Control library for C#
-along with a lot of changes and improvements by the author.
-http://luvtechno.net/d/1980/02/open_sound_control_for_net_2.html
+The source distribution includes projects for all three supported
+platforms and their respective build systems: Linux, Win32, MacOS X.
+
+Windows:
+A Visual Studio 2012 project as well as the necessary SDL2 libraries 
+and headers are included. The project should build right away for 
+32bit and 64bit targets without any additional configuration.
+
+Mac OS X:
+An Xcode project for Xcode version 3.2 or later is included.
+The build will require the SDL2 and VVUVCKit frameworks, in order 
+to compile properly, just unzip the included Frameworks.zip
+
+Linux:
+Call make to build the application, the distribution also
+includes configurations for the creation of RPM packages, as well
+as a project file for the Codeblocks IDE. 
+Make sure you have the libSDL 2.0 and libdc1394 2.0 (or later) 
+as well as turbojpeg libraries and headers installed. 
+
+License
+-------
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
